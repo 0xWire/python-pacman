@@ -21,6 +21,7 @@ DOWN = Vec2(0.0, 1.0)
 LEFT = Vec2(-1.0, 0.0)
 RIGHT = Vec2(1.0, 0.0)
 STOP = Vec2(0.0, 0.0)
+DIRECTION_ORDER = [UP, LEFT, DOWN, RIGHT]
 
 
 @dataclass
@@ -38,3 +39,13 @@ class Ghost:
     direction: Vec2
     speed: float
     scatter_target: tuple[int, int]
+
+
+@dataclass
+class GameState:
+    score: int
+    lives: int
+    pellets_left: int
+    paused: bool = False
+    game_over: bool = False
+    level_complete: bool = False
