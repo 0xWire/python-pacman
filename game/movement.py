@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import math
+
 from .entities import Vec2
 from .maze import MazeMap
 
@@ -27,3 +29,17 @@ def can_move(maze: MazeMap, pos: Vec2, direction: Vec2, tile_size: int) -> bool:
     col = int(target_x // tile_size)
     row = int(target_y // tile_size)
     return not maze.is_wall(col, row)
+
+
+def step(pos: Vec2, direction: Vec2, speed: float, dt: float) -> Vec2:
+    return Vec2(pos.x + direction.x * speed * dt, pos.y + direction.y * speed * dt)
+
+
+def squared_distance(a: tuple[int, int], b: tuple[int, int]) -> int:
+    dx = a[0] - b[0]
+    dy = a[1] - b[1]
+    return dx * dx + dy * dy
+
+
+def world_distance(a: Vec2, b: Vec2) -> float:
+    return math.hypot(a.x - b.x, a.y - b.y)
