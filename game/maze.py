@@ -27,6 +27,7 @@ DEFAULT_LAYOUT = [
 ]
 
 
+
 @dataclass
 class MazeMap:
     layout: list[str]
@@ -47,6 +48,16 @@ class MazeMap:
         if row < 0 or row >= self.height or col < 0 or col >= self.width:
             return True
         return self.layout[row][col] == "#"
+
+    def eat_pellet(self, col: int, row: int) -> int:
+        key = (col, row)
+        if key in self.pellets:
+            self.pellets.remove(key)
+            return 10
+        if key in self.power_pellets:
+            self.power_pellets.remove(key)
+            return 50
+        return 0
 
 
 def load_default_maze() -> MazeMap:
