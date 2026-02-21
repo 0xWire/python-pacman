@@ -68,10 +68,11 @@ def load_sprite_pack(tile_size: int) -> SpritePack:
     ghost_colors = {
         "blinky": (230, 70, 70),
         "pinky": (255, 140, 200),
-        "inky": (90, 240, 255),    }
+        "inky": (90, 240, 255),
+        "clyde": (255, 170, 70),    }
 
     ghosts: dict[str, pygame.Surface] = {}
-    for name in ["blinky", "pinky", "inky"]:
+    for name in ["blinky", "pinky", "inky", "clyde"]:
         sprite = _load_or_none(ASSET_DIR / f"ghost_{name}.png")
         if sprite is None:
             sprite = _fallback_ghost(desired, ghost_colors[name])
