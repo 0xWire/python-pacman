@@ -66,10 +66,11 @@ def load_sprite_pack(tile_size: int) -> SpritePack:
         pacman_closed = _fallback_pacman(desired, open_mouth=False)
 
     ghost_colors = {
-        "blinky": (230, 70, 70),    }
+        "blinky": (230, 70, 70),
+        "pinky": (255, 140, 200),    }
 
     ghosts: dict[str, pygame.Surface] = {}
-    for name in ["blinky"]:
+    for name in ["blinky", "pinky"]:
         sprite = _load_or_none(ASSET_DIR / f"ghost_{name}.png")
         if sprite is None:
             sprite = _fallback_ghost(desired, ghost_colors[name])
