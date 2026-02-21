@@ -22,13 +22,32 @@ def _load_or_none(path: Path) -> pygame.Surface | None:
     return None
 
 
+def _fallback_pacman(size: int, open_mouth: bool) -> pygame.Surface:
+    surface = pygame.Surface((size, size), pygame.SRCALPHA)
+    center = (size // 2, size // 2)
+    radius = size // 2 - 1
+    pygame.draw.circle(surface, (255, 220, 0), center, radius)
+    if open_mouth:
+        mouth = [center, (size - 2, size // 4), (size - 2, size - size // 4)]
+        pygame.draw.polygon(surface, (0, 0, 0), mouth)
+    pygame.draw.circle(surface, (0, 0, 0), (size // 2 + size // 6, size // 3), max(1, size // 14))
+    return surface
+
+
+def _fit(sprite: pygame.Surface, size: int) -> pygame.Surface:
+    return pygame.transform.smoothscale(sprite, (size, size))
+
+
 def load_sprite_pack(tile_size: int) -> SpritePack:
+    desired = max(20, tile_size - 2)
     pacman_open = _load_or_none(ASSET_DIR / "pacman_open.png")
     pacman_closed = _load_or_none(ASSET_DIR / "pacman_closed.png")
-    if pacman_open is None or pacman_closed is None:
-        raise FileNotFoundError("pacman sprite assets are missing")
+    if pacman_open is None:
+        pacman_open = _fallback_pacman(desired, open_mouth=True)
+    if pacman_closed is None:
+        pacman_closed = _fallback_pacman(desired, open_mouth=False)
     return SpritePack(
-        pacman_open=pacman_open,
-        pacman_closed=pacman_closed,
+        pacman_open=_fit(pacman_open, desired),
+        pacman_closed=_fit(pacman_closed, desired),
         ghosts={},
     )
