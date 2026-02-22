@@ -1,6 +1,6 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
-from .entities import DIRECTION_ORDER, Ghost, Pacman, STOP, Vec2
+from .entities import DIRECTION_ORDER, DOWN, Ghost, LEFT, Pacman, RIGHT, STOP, UP, Vec2
 from .maze import MazeMap
 from .movement import can_move, squared_distance, world_to_tile
 
@@ -25,11 +25,29 @@ def _target_tile(
     tile_size: int,
     scatter_mode: bool,
 ) -> tuple[int, int]:
+    pacman_tile = world_to_tile(pacman.pos, tile_size)
+
     if scatter_mode:
         return ghost.scatter_target
+
+    if ghost.kind == "blinky":
+        return pacman_tile
+
     if ghost.kind == "pinky":
         return _ahead_tile(pacman, tile_size, steps=4)
-    return world_to_tile(pacman.pos, tile_size)
+
+    if ghost.kind == "inky":
+        ahead = _ahead_tile(pacman, tile_size, steps=2)
+        blinky_tile = world_to_tile(blinky.pos, tile_size)
+        vector_x = ahead[0] - blinky_tile[0]
+        vector_y = ahead[1] - blinky_tile[1]
+        return ahead[0] + vector_x, ahead[1] + vector_y
+
+    # Clyde: chase when far, retreat to corner when close.
+    ghost_tile = world_to_tile(ghost.pos, tile_size)
+    if squared_distance(ghost_tile, pacman_tile) > 64:
+        return pacman_tile
+    return ghost.scatter_target
 
 
 def choose_ghost_direction(
