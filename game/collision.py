@@ -1,9 +1,8 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from .entities import Ghost, Pacman
+from .movement import world_distance
 
 
 def collides_with_ghost(pacman: Pacman, ghost: Ghost, radius: float) -> bool:
-    dx = pacman.pos.x - ghost.pos.x
-    dy = pacman.pos.y - ghost.pos.y
-    return dx * dx + dy * dy <= radius * radius
+    return world_distance(pacman.pos, ghost.pos) <= radius
