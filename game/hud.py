@@ -1,6 +1,10 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import pygame
+
+HUD_TEXT_COLOR = (240, 240, 240)
+HUD_HINT_COLOR = (155, 155, 155)
+HUD_HINT = "Arrows/WASD move   P pause   R restart   ESC quit"
 
 
 def draw_hud(
@@ -11,9 +15,8 @@ def draw_hud(
     lives: int,
 ) -> None:
     text = f"Score: {score}    Lives: {lives}"
-    hint = "Arrows/WASD move   P pause   R restart   ESC quit"
-    surface.blit(font.render(text, True, (240, 240, 240)), (12, top_y + 8))
-    surface.blit(font.render(hint, True, (155, 155, 155)), (12, top_y + 34))
+    surface.blit(font.render(text, True, HUD_TEXT_COLOR), (12, top_y + 8))
+    surface.blit(font.render(HUD_HINT, True, HUD_HINT_COLOR), (12, top_y + 34))
 
 
 def draw_center_message(
