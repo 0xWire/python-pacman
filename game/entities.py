@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass
 from typing import Literal
@@ -14,6 +14,9 @@ class Vec2:
 
     def scaled(self, factor: float) -> "Vec2":
         return Vec2(self.x * factor, self.y * factor)
+
+    def is_zero(self) -> bool:
+        return self.x == 0.0 and self.y == 0.0
 
 
 UP = Vec2(0.0, -1.0)
