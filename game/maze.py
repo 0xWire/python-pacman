@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from dataclasses import dataclass
 
@@ -26,6 +26,7 @@ DEFAULT_LAYOUT = [
     "############################",
 ]
 
+FALLBACK_GHOST_SPAWNS = [(12, 9), (13, 9), (14, 9), (15, 9)]
 
 
 @dataclass
@@ -76,6 +77,13 @@ def load_default_maze() -> MazeMap:
                 pellets.add((col, row))
             elif cell == "o":
                 power_pellets.add((col, row))
+
+    if len(ghost_spawns) < 4:
+        for tile in FALLBACK_GHOST_SPAWNS:
+            if tile not in ghost_spawns:
+                ghost_spawns.append(tile)
+            if len(ghost_spawns) == 4:
+                break
 
     return MazeMap(
         layout=DEFAULT_LAYOUT,
