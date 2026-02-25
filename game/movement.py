@@ -1,9 +1,13 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import math
 
 from .entities import Vec2
 from .maze import MazeMap
+
+
+def _is_idle_direction(direction: Vec2) -> bool:
+    return direction.x == 0 and direction.y == 0
 
 
 def tile_center(col: int, row: int, tile_size: int) -> Vec2:
@@ -21,7 +25,7 @@ def near_tile_center(pos: Vec2, tile_size: int, tolerance: float = 2.5) -> bool:
 
 
 def can_move(maze: MazeMap, pos: Vec2, direction: Vec2, tile_size: int) -> bool:
-    if direction.x == 0 and direction.y == 0:
+    if _is_idle_direction(direction):
         return True
     probe = tile_size * 0.52
     target_x = pos.x + direction.x * probe
