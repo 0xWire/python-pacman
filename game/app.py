@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import itertools
 
@@ -193,6 +193,16 @@ class GameApp:
             rect = sprite.get_rect(center=(int(ghost.pos.x), int(ghost.pos.y)))
             surface.blit(sprite, rect)
 
+    def _handle_event(self, event: pygame.event.Event) -> None:
+        if event.type == pygame.QUIT:
+            self.running = False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+            self.running = False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
+            self.state.paused = not self.state.paused
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            self._restart_level()
+
     def run(self) -> None:
         pygame.init()
         pygame.display.set_caption("PacMan")
@@ -206,14 +216,7 @@ class GameApp:
 
         while self.running:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    self.running = False
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    self.running = False
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_p:
-                    self.state.paused = not self.state.paused
-                elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                    self._restart_level()
+                self._handle_event(event)
 
             dt = clock.tick(self.config.fps) / 1000.0
             self._read_input()
