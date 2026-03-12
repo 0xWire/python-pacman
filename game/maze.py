@@ -1,0 +1,94 @@
+﻿from __future__ import annotations
+
+from dataclasses import dataclass
+
+
+DEFAULT_LAYOUT = [
+    "############################",
+    "#............##............#",
+    "#.####.#####.##.#####.####.#",
+    "#o####.#####.##.#####.####o#",
+    "#..........................#",
+    "#.####.##.########.##.####.#",
+    "#......##....##....##......#",
+    "######.#####.##.#####.######",
+    "#....#................#....#",
+    "####.#.##.##GGGG##.##.#.####",
+    "#....#.##.##....##.##.#....#",
+    "####.#.##.########.##.#.####",
+    "#............##............#",
+    "#.####.#####.##.#####.####.#",
+    "#...##................##...#",
+    "###.##.##.########.##.##.###",
+    "#......##....P.....##......#",
+    "#.##########.##.##########.#",
+    "#o........................o#",
+    "############################",
+]
+
+FALLBACK_GHOST_SPAWNS = [(12, 9), (13, 9), (14, 9), (15, 9)]
+
+
+@dataclass
+class MazeMap:
+    layout: list[str]
+    pacman_spawn: tuple[int, int]
+    ghost_spawns: list[tuple[int, int]]
+    pellets: set[tuple[int, int]]
+    power_pellets: set[tuple[int, int]]
+
+    @property
+    def width(self) -> int:
+        return len(self.layout[0])
+
+    @property
+    def height(self) -> int:
+        return len(self.layout)
+
+    def is_wall(self, col: int, row: int) -> bool:
+        if row < 0 or row >= self.height or col < 0 or col >= self.width:
+            return True
+        return self.layout[row][col] == "#"
+
+    def eat_pellet(self, col: int, row: int) -> int:
+        key = (col, row)
+        if key in self.pellets:
+            self.pellets.remove(key)
+            return 10
+        if key in self.power_pellets:
+            self.power_pellets.remove(key)
+            return 50
+        return 0
+
+
+def load_default_maze() -> MazeMap:
+    pacman_spawn = (14, 16)
+    ghost_spawns: list[tuple[int, int]] = []
+    pellets: set[tuple[int, int]] = set()
+    power_pellets: set[tuple[int, int]] = set()
+
+    for row, row_value in enumerate(DEFAULT_LAYOUT):
+        for col, cell in enumerate(row_value):
+            if cell == "P":
+                pacman_spawn = (col, row)
+            elif cell == "G":
+                ghost_spawns.append((col, row))
+            elif cell == ".":
+                pellets.add((col, row))
+            elif cell == "o":
+                power_pellets.add((col, row))
+
+    if len(ghost_spawns) < 4:
+        for tile in FALLBACK_GHOST_SPAWNS:
+            if tile not in ghost_spawns:
+                ghost_spawns.append(tile)
+            if len(ghost_spawns) == 4:
+                break
+
+    return MazeMap(
+        layout=DEFAULT_LAYOUT,
+        pacman_spawn=pacman_spawn,
+        ghost_spawns=ghost_spawns[:4],
+        pellets=pellets,
+        power_pellets=power_pellets,
+    )
