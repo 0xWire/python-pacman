@@ -1,7 +1,7 @@
 import pytest
 
-from game.entities import DOWN, Ghost, LEFT, Pacman, RIGHT, UP
-from game.ghost_ai import _target_tile
+from game.entities import DOWN, Ghost, LEFT, Pacman, RIGHT, STOP, UP
+from game.ghost_ai import _target_tile, choose_ghost_direction
 from game.movement import tile_center
 
 pytestmark = pytest.mark.unit
@@ -107,3 +107,83 @@ def test_clyde_switches_between_chase_and_scatter(
     blinky = make_ghost("blinky", 2, 1, tile_size, scatter_target=(8, 1))
 
     assert _target_tile(clyde, pacman, blinky, tile_size, scatter_mode=False) == expected
+
+
+def test_choose_ghost_direction_picks_shortest_path_to_target(sample_maze, tile_size: int) -> None:
+    pacman = Pacman(
+        pos=tile_center(3, 2, tile_size),
+        direction=RIGHT,
+        desired_direction=RIGHT,
+        speed=100.0,
+    )
+    ghost = make_ghost("blinky", 2, 2, tile_size, scatter_target=(4, 1), direction=STOP)
+    blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
+
+    assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False) == RIGHT
+
+
+def test_choose_ghost_direction_skips_reverse_when_other_moves_exist(sample_maze, tile_size: int) -> None:
+    pacman = Pacman(
+        pos=tile_center(1, 2, tile_size),
+        direction=LEFT,
+        desired_direction=LEFT,
+        speed=100.0,
+    )
+    ghost = make_ghost("blinky", 2, 2, tile_size, scatter_target=(4, 1), direction=RIGHT)
+    blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
+
+    assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False) == UP
+
+
+def test_choose_ghost_direction_falls_back_to_reverse_when_it_is_the_only_move(
+    maze_factory,
+    tile_size: int,
+) -> None:
+    maze = maze_factory(
+        layout=[
+            "#####",
+            "#####",
+            "##..#",
+            "#####",
+            "#####",
+        ],
+        pacman_spawn=(3, 2),
+        ghost_spawns=[(3, 2)],
+    )
+    pacman = Pacman(
+        pos=tile_center(1, 1, tile_size),
+        direction=LEFT,
+        desired_direction=LEFT,
+        speed=100.0,
+    )
+    ghost = make_ghost("blinky", 3, 2, tile_size, scatter_target=(4, 1), direction=RIGHT)
+    blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
+
+    assert choose_ghost_direction(ghost, pacman, blinky, maze, tile_size, False) == LEFT
+
+
+def test_choose_ghost_direction_returns_stop_when_no_moves_are_available(
+    maze_factory,
+    tile_size: int,
+) -> None:
+    maze = maze_factory(
+        layout=[
+            "#####",
+            "#####",
+            "##.##",
+            "#####",
+            "#####",
+        ],
+        pacman_spawn=(2, 2),
+        ghost_spawns=[(2, 2)],
+    )
+    pacman = Pacman(
+        pos=tile_center(1, 1, tile_size),
+        direction=LEFT,
+        desired_direction=LEFT,
+        speed=100.0,
+    )
+    ghost = make_ghost("blinky", 2, 2, tile_size, scatter_target=(4, 1), direction=RIGHT)
+    blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
+
+    assert choose_ghost_direction(ghost, pacman, blinky, maze, tile_size, False) == STOP
