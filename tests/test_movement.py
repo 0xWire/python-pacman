@@ -76,7 +76,12 @@ def test_can_move_allows_idle_direction(sample_maze) -> None:
         (tile_center(1, 1, 20), UP, False),
     ],
 )
-def test_can_move_checks_walls_ahead(position: Vec2, direction: Vec2, expected: bool, sample_maze) -> None:
+def test_can_move_checks_walls_ahead(
+    position: Vec2,
+    direction: Vec2,
+    expected: bool,
+    sample_maze,
+) -> None:
     assert can_move(sample_maze, position, direction, 20) is expected
 
 

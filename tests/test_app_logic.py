@@ -28,14 +28,21 @@ def test_spawn_entities_creates_pacman_and_four_ghosts(game_config: GameConfig) 
 
     pacman, ghosts = app._spawn_entities()
 
-    assert pacman.pos == tile_center(app.maze.pacman_spawn[0], app.maze.pacman_spawn[1], game_config.tile_size)
+    assert pacman.pos == tile_center(
+        app.maze.pacman_spawn[0],
+        app.maze.pacman_spawn[1],
+        game_config.tile_size,
+    )
     assert pacman.direction == STOP
     assert pacman.desired_direction == STOP
     assert [ghost.kind for ghost in ghosts] == ["blinky", "pinky", "inky", "clyde"]
     assert [ghost.direction for ghost in ghosts] == [LEFT, RIGHT, LEFT, RIGHT]
 
 
-def test_update_pacman_eats_pellet_and_completes_level(game_config: GameConfig, maze_factory) -> None:
+def test_update_pacman_eats_pellet_and_completes_level(
+    game_config: GameConfig,
+    maze_factory,
+) -> None:
     app = GameApp(game_config)
     app.maze = build_open_maze(maze_factory)
     app.maze.pellets = {(2, 2)}
@@ -152,7 +159,13 @@ def test_handle_event_supports_pause_restart_and_quit(game_config: GameConfig) -
 
 def test_restart_level_resets_state_and_timers(game_config: GameConfig) -> None:
     app = GameApp(game_config)
-    app.state = GameState(score=999, lives=1, pellets_left=0, paused=True, game_over=True)
+    app.state = GameState(
+        score=999,
+        lives=1,
+        pellets_left=0,
+        paused=True,
+        game_over=True,
+    )
     app.elapsed = 5.0
     app.mouth_timer = 2.0
 

@@ -6,7 +6,7 @@ import pygame
 
 from .collision import collides_with_ghost
 from .config import GameConfig
-from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP, Vec2
+from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP
 from .ghost_ai import choose_ghost_direction
 from .hud import draw_center_message, draw_hud
 from .maze import MazeMap, load_default_maze
@@ -18,7 +18,8 @@ class GameApp:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
         self.maze: MazeMap = load_default_maze()
-        self.state = GameState(score=0, lives=3, pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets))
+        pellets_left = len(self.maze.pellets) + len(self.maze.power_pellets)
+        self.state = GameState(score=0, lives=3, pellets_left=pellets_left)
 
         self.pacman, self.ghosts = self._spawn_entities()
         self.elapsed = 0.0
@@ -68,7 +69,8 @@ class GameApp:
 
     def _restart_level(self) -> None:
         self.maze = load_default_maze()
-        self.state = GameState(score=0, lives=3, pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets))
+        pellets_left = len(self.maze.pellets) + len(self.maze.power_pellets)
+        self.state = GameState(score=0, lives=3, pellets_left=pellets_left)
         self._reset_positions()
         self.elapsed = 0.0
         self.mouth_timer = 0.0
@@ -86,7 +88,12 @@ class GameApp:
 
     def _update_pacman(self, dt: float) -> None:
         if near_tile_center(self.pacman.pos, self.config.tile_size):
-            if can_move(self.maze, self.pacman.pos, self.pacman.desired_direction, self.config.tile_size):
+            if can_move(
+                self.maze,
+                self.pacman.pos,
+                self.pacman.desired_direction,
+                self.config.tile_size,
+            ):
                 self.pacman.direction = self.pacman.desired_direction
 
         if can_move(self.maze, self.pacman.pos, self.pacman.direction, self.config.tile_size):
@@ -179,7 +186,10 @@ class GameApp:
         if self.sprites is None:
             return
 
-        frame = self.sprites.pacman_open if int(self.mouth_timer * 12) % 2 == 0 else self.sprites.pacman_closed
+        if int(self.mouth_timer * 12) % 2 == 0:
+            frame = self.sprites.pacman_open
+        else:
+            frame = self.sprites.pacman_closed
         rotated = pygame.transform.rotate(frame, self._pacman_angle())
         rect = rotated.get_rect(center=(int(self.pacman.pos.x), int(self.pacman.pos.y)))
         surface.blit(rotated, rect)

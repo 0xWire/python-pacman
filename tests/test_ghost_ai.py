@@ -25,7 +25,10 @@ def make_ghost(
 
 
 @pytest.mark.parametrize("direction", [RIGHT, LEFT, UP, DOWN])
-def test_target_tile_uses_scatter_target_when_scatter_mode_is_enabled(direction, tile_size: int) -> None:
+def test_target_tile_uses_scatter_target_when_scatter_mode_is_enabled(
+    direction,
+    tile_size: int,
+) -> None:
     pacman = Pacman(
         pos=tile_center(3, 3, tile_size),
         direction=direction,
@@ -122,7 +125,10 @@ def test_choose_ghost_direction_picks_shortest_path_to_target(sample_maze, tile_
     assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False) == RIGHT
 
 
-def test_choose_ghost_direction_skips_reverse_when_other_moves_exist(sample_maze, tile_size: int) -> None:
+def test_choose_ghost_direction_skips_reverse_when_other_moves_exist(
+    sample_maze,
+    tile_size: int,
+) -> None:
     pacman = Pacman(
         pos=tile_center(1, 2, tile_size),
         direction=LEFT,

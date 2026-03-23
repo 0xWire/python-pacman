@@ -1,15 +1,9 @@
 from __future__ import annotations
 
 import os
-import sys
-from pathlib import Path
 
 import pygame
 import pytest
-
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
 
 from game.config import GameConfig
 from game.entities import Ghost, Pacman, STOP
