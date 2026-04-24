@@ -13,8 +13,9 @@ def draw_hud(
     top_y: int,
     score: int,
     lives: int,
+    level: int,
 ) -> None:
-    text = f"Score: {score}    Lives: {lives}"
+    text = f"Score: {score}    Lives: {lives}    Level: {level}"
     surface.blit(font.render(text, True, HUD_TEXT_COLOR), (12, top_y + 8))
     surface.blit(font.render(HUD_HINT, True, HUD_HINT_COLOR), (12, top_y + 34))
 

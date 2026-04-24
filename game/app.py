@@ -9,7 +9,7 @@ from .config import GameConfig
 from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP, Vec2
 from .ghost_ai import choose_ghost_direction
 from .hud import draw_center_message, draw_hud
-from .maze import MazeMap, load_default_maze
+from .maze import MazeMap, available_mazes, load_maze
 from .movement import can_move, near_tile_center, step, tile_center, world_to_tile
 from .sprites import SpritePack, load_sprite_pack
 
@@ -17,7 +17,9 @@ from .sprites import SpritePack, load_sprite_pack
 class GameApp:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
-        self.maze: MazeMap = load_default_maze()
+        self.maze_names = available_mazes()
+        self.maze_index = 0
+        self.maze = load_maze(self.maze_names[self.maze_index])
         self.state = GameState(score=0, lives=3, pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets))
 
         self.pacman, self.ghosts = self._spawn_entities()
@@ -67,8 +69,19 @@ class GameApp:
         self.ghosts = ghosts
 
     def _restart_level(self) -> None:
-        self.maze = load_default_maze()
+        self.maze_index = 0
+        self.maze = load_maze(self.maze_names[self.maze_index])
         self.state = GameState(score=0, lives=3, pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets))
+        self._reset_positions()
+        self.elapsed = 0.0
+        self.mouth_timer = 0.0
+
+    def _advance_level(self) -> None:
+        self.maze_index = (self.maze_index + 1) % len(self.maze_names)
+        self.maze = load_maze(self.maze_names[self.maze_index])
+        self.state.level += 1
+        self.state.level_complete = False
+        self.state.pellets_left = len(self.maze.pellets) + len(self.maze.power_pellets)
         self._reset_positions()
         self.elapsed = 0.0
         self.mouth_timer = 0.0
@@ -99,6 +112,7 @@ class GameApp:
             self.state.pellets_left -= 1
             if self.state.pellets_left <= 0:
                 self.state.level_complete = True
+                self._advance_level()
 
     def _update_ghosts(self, dt: float) -> None:
         scatter_mode = int(self.elapsed / 8.0) % 2 == 1
@@ -235,6 +249,7 @@ class GameApp:
                     top_y=self.maze.height * self.config.tile_size,
                     score=self.state.score,
                     lives=self.state.lives,
+                    level=self.state.level,
                 )
                 if self.state.paused:
                     draw_center_message(screen, self.font, window_size, "PAUSED")

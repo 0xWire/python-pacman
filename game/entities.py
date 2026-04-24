@@ -49,6 +49,7 @@ class GameState:
     score: int
     lives: int
     pellets_left: int
+    level: int = 1
     paused: bool = False
     game_over: bool = False
     level_complete: bool = False
