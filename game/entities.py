@@ -41,6 +41,7 @@ class Ghost:
     pos: Vec2
     direction: Vec2
     speed: float
+    spawn_tile: tuple[int, int]
     scatter_target: tuple[int, int]
 
 
@@ -51,6 +52,7 @@ class GameState:
     pellets_left: int
     level: int = 1
     frightened_timer: float = 0.0
+    frightened_combo: int = 0
     paused: bool = False
     game_over: bool = False
     level_complete: bool = False

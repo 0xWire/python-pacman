@@ -60,6 +60,7 @@ class GameApp:
                     pos=tile_center(col, row, self.config.tile_size),
                     direction=LEFT if kind in {"blinky", "inky"} else RIGHT,
                     speed=self.config.ghost_speed,
+                    spawn_tile=(col, row),
                     scatter_target=scatter_targets[kind],
                 )
             )
@@ -117,6 +118,7 @@ class GameApp:
             self.state.pellets_left -= 1
             if ate_power_pellet:
                 self.state.frightened_timer = self.FRIGHTENED_DURATION
+                self.state.frightened_combo = 0
             if self.state.pellets_left <= 0:
                 self.state.level_complete = True
                 self._advance_level()
@@ -146,6 +148,12 @@ class GameApp:
         radius = self.config.tile_size * self.config.collision_radius_ratio
         for ghost in self.ghosts:
             if collides_with_ghost(self.pacman, ghost, radius):
+                if self.state.frightened_timer > 0.0:
+                    self.state.score += 200 * (2 ** self.state.frightened_combo)
+                    self.state.frightened_combo += 1
+                    ghost.pos = tile_center(ghost.spawn_tile[0], ghost.spawn_tile[1], self.config.tile_size)
+                    ghost.direction = STOP
+                    continue
                 self.state.lives -= 1
                 if self.state.lives <= 0:
                     self.state.game_over = True
@@ -157,6 +165,8 @@ class GameApp:
         self.elapsed += dt
         self.mouth_timer += dt
         self.state.frightened_timer = max(0.0, self.state.frightened_timer - dt)
+        if self.state.frightened_timer == 0.0:
+            self.state.frightened_combo = 0
 
         self._update_pacman(dt)
         self._update_ghosts(dt)
