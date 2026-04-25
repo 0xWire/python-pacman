@@ -15,6 +15,9 @@ from .sprites import SpritePack, load_sprite_pack
 
 
 class GameApp:
+    FRIGHTENED_DURATION = 6.0
+    FRIGHTENED_GHOST_SPEED_RATIO = 0.75
+
     def __init__(self, config: GameConfig) -> None:
         self.config = config
         self.maze_names = available_mazes()
@@ -107,19 +110,24 @@ class GameApp:
             self.pacman.pos = wrap_position(self.maze, self.pacman.pos, self.config.tile_size)
 
         col, row = world_to_tile(self.pacman.pos, self.config.tile_size)
+        ate_power_pellet = (col, row) in self.maze.power_pellets
         gained = self.maze.eat_pellet(col, row)
         if gained:
             self.state.score += gained
             self.state.pellets_left -= 1
+            if ate_power_pellet:
+                self.state.frightened_timer = self.FRIGHTENED_DURATION
             if self.state.pellets_left <= 0:
                 self.state.level_complete = True
                 self._advance_level()
 
     def _update_ghosts(self, dt: float) -> None:
         scatter_mode = int(self.elapsed / 8.0) % 2 == 1
+        frightened = self.state.frightened_timer > 0.0
         blinky = self.ghosts[0]
 
         for ghost in self.ghosts:
+            ghost.speed = self.config.ghost_speed * (self.FRIGHTENED_GHOST_SPEED_RATIO if frightened else 1.0)
             if near_tile_center(ghost.pos, self.config.tile_size):
                 ghost.direction = choose_ghost_direction(
                     ghost=ghost,
@@ -128,6 +136,7 @@ class GameApp:
                     maze=self.maze,
                     tile_size=self.config.tile_size,
                     scatter_mode=scatter_mode,
+                    frightened=frightened,
                 )
             if can_move(self.maze, ghost.pos, ghost.direction, self.config.tile_size):
                 ghost.pos = step(ghost.pos, ghost.direction, ghost.speed, dt)
@@ -147,6 +156,7 @@ class GameApp:
     def _update(self, dt: float) -> None:
         self.elapsed += dt
         self.mouth_timer += dt
+        self.state.frightened_timer = max(0.0, self.state.frightened_timer - dt)
 
         self._update_pacman(dt)
         self._update_ghosts(dt)
