@@ -10,7 +10,7 @@ from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP, Vec
 from .ghost_ai import choose_ghost_direction
 from .hud import draw_center_message, draw_hud
 from .maze import MazeMap, available_mazes, load_maze
-from .movement import can_move, near_tile_center, step, tile_center, world_to_tile
+from .movement import can_move, near_tile_center, step, tile_center, world_to_tile, wrap_position
 from .sprites import SpritePack, load_sprite_pack
 
 
@@ -104,6 +104,7 @@ class GameApp:
 
         if can_move(self.maze, self.pacman.pos, self.pacman.direction, self.config.tile_size):
             self.pacman.pos = step(self.pacman.pos, self.pacman.direction, self.pacman.speed, dt)
+            self.pacman.pos = wrap_position(self.maze, self.pacman.pos, self.config.tile_size)
 
         col, row = world_to_tile(self.pacman.pos, self.config.tile_size)
         gained = self.maze.eat_pellet(col, row)
@@ -130,6 +131,7 @@ class GameApp:
                 )
             if can_move(self.maze, ghost.pos, ghost.direction, self.config.tile_size):
                 ghost.pos = step(ghost.pos, ghost.direction, ghost.speed, dt)
+                ghost.pos = wrap_position(self.maze, ghost.pos, self.config.tile_size)
 
     def _check_collisions(self) -> None:
         radius = self.config.tile_size * self.config.collision_radius_ratio
