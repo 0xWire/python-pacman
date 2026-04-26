@@ -10,7 +10,7 @@ from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP, Vec
 from .ghost_ai import choose_ghost_direction
 from .hud import draw_center_message, draw_hud
 from .maze import MazeMap, available_mazes, load_maze
-from .movement import can_move, near_tile_center, step, tile_center, world_to_tile, wrap_position
+from .movement import can_move, near_tile_center, snap_to_tile_center, step, tile_center, world_to_tile, wrap_position
 from .sprites import SpritePack, load_sprite_pack
 
 
@@ -103,6 +103,7 @@ class GameApp:
 
     def _update_pacman(self, dt: float) -> None:
         if near_tile_center(self.pacman.pos, self.config.tile_size):
+            self.pacman.pos = snap_to_tile_center(self.pacman.pos, self.config.tile_size)
             if can_move(self.maze, self.pacman.pos, self.pacman.desired_direction, self.config.tile_size):
                 self.pacman.direction = self.pacman.desired_direction
 
@@ -131,6 +132,7 @@ class GameApp:
         for ghost in self.ghosts:
             ghost.speed = self.config.ghost_speed * (self.FRIGHTENED_GHOST_SPEED_RATIO if frightened else 1.0)
             if near_tile_center(ghost.pos, self.config.tile_size):
+                ghost.pos = snap_to_tile_center(ghost.pos, self.config.tile_size)
                 ghost.direction = choose_ghost_direction(
                     ghost=ghost,
                     pacman=self.pacman,

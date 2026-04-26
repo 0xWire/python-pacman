@@ -24,6 +24,13 @@ def near_tile_center(pos: Vec2, tile_size: int, tolerance: float = 2.5) -> bool:
     return abs(pos.x - center.x) <= tolerance and abs(pos.y - center.y) <= tolerance
 
 
+def snap_to_tile_center(pos: Vec2, tile_size: int, tolerance: float = 2.5) -> Vec2:
+    if not near_tile_center(pos, tile_size, tolerance):
+        return pos
+    col, row = world_to_tile(pos, tile_size)
+    return tile_center(col, row, tile_size)
+
+
 def can_move(maze: MazeMap, pos: Vec2, direction: Vec2, tile_size: int) -> bool:
     if _is_idle_direction(direction):
         return True
