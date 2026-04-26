@@ -15,7 +15,6 @@ from .sprites import SpritePack, load_sprite_pack
 
 
 class GameApp:
-    FRIGHTENED_DURATION = 6.0
     FRIGHTENED_GHOST_SPEED_RATIO = 0.75
     READY_DURATION = 1.5
 
@@ -41,7 +40,7 @@ class GameApp:
             pos=tile_center(pacman_tile[0], pacman_tile[1], self.config.tile_size),
             direction=STOP,
             desired_direction=STOP,
-            speed=self.config.pacman_speed,
+            speed=self.config.pacman_speed_for_level(self.state.level),
         )
 
         ghost_kinds = ["blinky", "pinky", "inky", "clyde"]
@@ -61,7 +60,7 @@ class GameApp:
                     kind=kind,
                     pos=tile_center(col, row, self.config.tile_size),
                     direction=LEFT if kind in {"blinky", "inky"} else RIGHT,
-                    speed=self.config.ghost_speed,
+                    speed=self.config.ghost_speed_for_level(self.state.level),
                     spawn_tile=(col, row),
                     scatter_target=scatter_targets[kind],
                 )
@@ -121,7 +120,7 @@ class GameApp:
             self.state.score += gained
             self.state.pellets_left -= 1
             if ate_power_pellet:
-                self.state.frightened_timer = self.FRIGHTENED_DURATION
+                self.state.frightened_timer = self.config.frightened_duration_for_level(self.state.level)
                 self.state.frightened_combo = 0
             if self.state.pellets_left <= 0:
                 self.state.level_complete = True
@@ -133,7 +132,8 @@ class GameApp:
         blinky = self.ghosts[0]
 
         for ghost in self.ghosts:
-            ghost.speed = self.config.ghost_speed * (self.FRIGHTENED_GHOST_SPEED_RATIO if frightened else 1.0)
+            base_speed = self.config.ghost_speed_for_level(self.state.level)
+            ghost.speed = base_speed * (self.FRIGHTENED_GHOST_SPEED_RATIO if frightened else 1.0)
             if near_tile_center(ghost.pos, self.config.tile_size):
                 ghost.pos = snap_to_tile_center(ghost.pos, self.config.tile_size)
                 ghost.direction = choose_ghost_direction(
