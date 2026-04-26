@@ -17,6 +17,7 @@ from .sprites import SpritePack, load_sprite_pack
 class GameApp:
     FRIGHTENED_DURATION = 6.0
     FRIGHTENED_GHOST_SPEED_RATIO = 0.75
+    READY_DURATION = 1.5
 
     def __init__(self, config: GameConfig) -> None:
         self.config = config
@@ -26,6 +27,7 @@ class GameApp:
         self.state = GameState(score=0, lives=3, pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets))
 
         self.pacman, self.ghosts = self._spawn_entities()
+        self.state.ready_timer = self.READY_DURATION
         self.elapsed = 0.0
         self.mouth_timer = 0.0
 
@@ -71,6 +73,7 @@ class GameApp:
         pacman, ghosts = self._spawn_entities()
         self.pacman = pacman
         self.ghosts = ghosts
+        self.state.ready_timer = self.READY_DURATION
 
     def _restart_level(self) -> None:
         self.maze_index = 0
@@ -166,6 +169,11 @@ class GameApp:
     def _update(self, dt: float) -> None:
         self.elapsed += dt
         self.mouth_timer += dt
+
+        if self.state.ready_timer > 0.0:
+            self.state.ready_timer = max(0.0, self.state.ready_timer - dt)
+            return
+
         self.state.frightened_timer = max(0.0, self.state.frightened_timer - dt)
         if self.state.frightened_timer == 0.0:
             self.state.frightened_combo = 0
@@ -279,6 +287,8 @@ class GameApp:
                     draw_center_message(screen, self.font, window_size, "PAUSED")
                 elif self.state.game_over:
                     draw_center_message(screen, self.font, window_size, "GAME OVER - PRESS R")
+                elif self.state.ready_timer > 0.0:
+                    draw_center_message(screen, self.font, window_size, "READY")
                 elif self.state.level_complete:
                     draw_center_message(screen, self.font, window_size, "LEVEL COMPLETE - PRESS R")
 
