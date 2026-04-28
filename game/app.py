@@ -21,9 +21,13 @@ class GameApp:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
         self.maze_names = available_mazes()
-        self.maze_index = 0
+        self.maze_index = self.maze_names.index(config.start_maze) if config.start_maze in self.maze_names else 0
         self.maze = load_maze(self.maze_names[self.maze_index])
-        self.state = GameState(score=0, lives=3, pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets))
+        self.state = GameState(
+            score=0,
+            lives=config.starting_lives,
+            pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets),
+        )
 
         self.pacman, self.ghosts = self._spawn_entities()
         self.state.ready_timer = self.READY_DURATION
@@ -75,9 +79,13 @@ class GameApp:
         self.state.ready_timer = self.READY_DURATION
 
     def _restart_level(self) -> None:
-        self.maze_index = 0
+        self.maze_index = self.maze_names.index(self.config.start_maze) if self.config.start_maze in self.maze_names else 0
         self.maze = load_maze(self.maze_names[self.maze_index])
-        self.state = GameState(score=0, lives=3, pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets))
+        self.state = GameState(
+            score=0,
+            lives=self.config.starting_lives,
+            pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets),
+        )
         self._reset_positions()
         self.elapsed = 0.0
         self.mouth_timer = 0.0

@@ -6,6 +6,8 @@ class GameConfig:
     tile_size: int = 28
     fps: int = 60
     hud_height: int = 68
+    start_maze: str = "classic"
+    starting_lives: int = 3
     pacman_speed: float = 125.0
     ghost_speed: float = 108.0
     collision_radius_ratio: float = 0.42
