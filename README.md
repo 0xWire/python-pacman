@@ -12,9 +12,14 @@ PacMan on Python + pygame. Branch `dev` is prepared for PR into `main`.
 ## Run
 ```bash
 python -m venv .venv
-. .venv/Scripts/activate
+. .venv/bin/activate
 pip install -r requirements.txt
 python main.py --tile-size 28 --fps 60 --maze classic --lives 3
+```
+
+PowerShell:
+```powershell
+.\.venv\Scripts\Activate.ps1
 ```
 
 ## CLI options
@@ -28,3 +33,21 @@ python main.py --tile-size 28 --fps 60 --maze classic --lives 3
 - `P`: pause/resume
 - `R`: restart level
 - `ESC`: quit
+
+## Quality Checks
+```bash
+make test
+make lint
+make report
+make ci
+```
+
+- `make test`: runs the full pytest suite
+- `make lint`: runs `flake8` for the project
+- `make report`: generates HTML reports in `reports/pytest/` and `reports/flake8/`
+- `make ci`: runs linting, tests, and report generation in one command
+
+## GitHub Actions
+- Workflow file: `.github/workflows/ci.yml`
+- Triggers: every `push` and `pull_request`
+- Artifacts: uploaded HTML reports from `reports/`

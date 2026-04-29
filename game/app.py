@@ -6,7 +6,7 @@ import pygame
 
 from .collision import collides_with_ghost
 from .config import GameConfig
-from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP, Vec2
+from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP
 from .ghost_ai import choose_ghost_direction
 from .hud import draw_center_message, draw_hud
 from .maze import MazeMap, available_mazes, load_maze
@@ -233,7 +233,10 @@ class GameApp:
         if self.sprites is None:
             return
 
-        frame = self.sprites.pacman_open if int(self.mouth_timer * 12) % 2 == 0 else self.sprites.pacman_closed
+        if int(self.mouth_timer * 12) % 2 == 0:
+            frame = self.sprites.pacman_open
+        else:
+            frame = self.sprites.pacman_closed
         rotated = pygame.transform.rotate(frame, self._pacman_angle())
         rect = rotated.get_rect(center=(int(self.pacman.pos.x), int(self.pacman.pos.y)))
         surface.blit(rotated, rect)

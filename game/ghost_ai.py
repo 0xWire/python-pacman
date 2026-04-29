@@ -1,6 +1,6 @@
 ﻿from __future__ import annotations
 
-from .entities import DIRECTION_ORDER, DOWN, Ghost, LEFT, Pacman, RIGHT, STOP, UP, Vec2
+from .entities import DIRECTION_ORDER, Ghost, Pacman, STOP, Vec2
 from .maze import MazeMap
 from .movement import can_move, squared_distance, world_to_tile
 
