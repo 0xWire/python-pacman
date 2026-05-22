@@ -36,8 +36,10 @@ def maze_factory():
         ghost_spawns: list[tuple[int, int]] | None = None,
         pellets: set[tuple[int, int]] | None = None,
         power_pellets: set[tuple[int, int]] | None = None,
+        name: str = "test",
     ) -> MazeMap:
         return MazeMap(
+            name=name,
             layout=layout,
             pacman_spawn=pacman_spawn,
             ghost_spawns=ghost_spawns or [(1, 1), (3, 1), (1, 3), (3, 3)],
@@ -78,6 +80,7 @@ def ghost(tile_size: int) -> Ghost:
         pos=tile_center(1, 1, tile_size),
         direction=STOP,
         speed=90.0,
+        spawn_tile=(1, 1),
         scatter_target=(3, 1),
     )
 
@@ -89,6 +92,7 @@ def blinky(tile_size: int) -> Ghost:
         pos=tile_center(1, 1, tile_size),
         direction=STOP,
         speed=90.0,
+        spawn_tile=(1, 1),
         scatter_target=(3, 1),
     )
 

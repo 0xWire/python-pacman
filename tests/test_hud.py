@@ -15,10 +15,10 @@ def test_draw_hud_renders_score_and_hint_text() -> None:
     hint_label = Mock()
     font.render.side_effect = [score_label, hint_label]
 
-    draw_hud(surface, font, top_y=100, score=420, lives=2)
+    draw_hud(surface, font, top_y=100, score=420, lives=2, level=1)
 
     assert font.render.call_args_list == [
-        call("Score: 420    Lives: 2", True, (240, 240, 240)),
+        call("Score: 420    Lives: 2    Level: 1", True, (240, 240, 240)),
         call(HUD_HINT, True, (155, 155, 155)),
     ]
     assert surface.blit.call_args_list == [

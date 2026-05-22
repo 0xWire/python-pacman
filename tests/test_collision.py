@@ -25,6 +25,7 @@ def test_collides_with_ghost_respects_distance_threshold(
         pos=ghost_pos,
         direction=STOP,
         speed=90.0,
+        spawn_tile=(0, 0),
         scatter_target=(0, 0),
     )
 

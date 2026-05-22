@@ -20,6 +20,7 @@ def make_ghost(
         pos=tile_center(col, row, tile_size),
         direction=direction,
         speed=90.0,
+        spawn_tile=(col, row),
         scatter_target=scatter_target,
     )
 
@@ -122,7 +123,7 @@ def test_choose_ghost_direction_picks_shortest_path_to_target(sample_maze, tile_
     ghost = make_ghost("blinky", 2, 2, tile_size, scatter_target=(4, 1), direction=STOP)
     blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
 
-    assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False) == RIGHT
+    assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False, False) == RIGHT
 
 
 def test_choose_ghost_direction_skips_reverse_when_other_moves_exist(
@@ -138,7 +139,7 @@ def test_choose_ghost_direction_skips_reverse_when_other_moves_exist(
     ghost = make_ghost("blinky", 2, 2, tile_size, scatter_target=(4, 1), direction=RIGHT)
     blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
 
-    assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False) == UP
+    assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False, False) == UP
 
 
 def test_choose_ghost_direction_falls_back_to_reverse_when_it_is_the_only_move(
@@ -165,7 +166,7 @@ def test_choose_ghost_direction_falls_back_to_reverse_when_it_is_the_only_move(
     ghost = make_ghost("blinky", 3, 2, tile_size, scatter_target=(4, 1), direction=RIGHT)
     blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
 
-    assert choose_ghost_direction(ghost, pacman, blinky, maze, tile_size, False) == LEFT
+    assert choose_ghost_direction(ghost, pacman, blinky, maze, tile_size, False, False) == LEFT
 
 
 def test_choose_ghost_direction_returns_stop_when_no_moves_are_available(
@@ -192,4 +193,4 @@ def test_choose_ghost_direction_returns_stop_when_no_moves_are_available(
     ghost = make_ghost("blinky", 2, 2, tile_size, scatter_target=(4, 1), direction=RIGHT)
     blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
 
-    assert choose_ghost_direction(ghost, pacman, blinky, maze, tile_size, False) == STOP
+    assert choose_ghost_direction(ghost, pacman, blinky, maze, tile_size, False, False) == STOP

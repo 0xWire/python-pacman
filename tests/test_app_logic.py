@@ -53,12 +53,14 @@ def test_update_pacman_eats_pellet_and_completes_level(
         desired_direction=STOP,
         speed=game_config.pacman_speed,
     )
+    app._advance_level = Mock()
 
     app._update_pacman(0.1)
 
     assert app.state.score == 10
     assert app.state.pellets_left == 0
     assert app.state.level_complete is True
+    app._advance_level.assert_called_once_with()
 
 
 def test_update_pacman_switches_to_desired_direction_when_path_is_open(
@@ -103,6 +105,7 @@ def test_check_collisions_resets_positions_when_lives_remain(game_config: GameCo
             pos=tile_center(2, 2, game_config.tile_size),
             direction=STOP,
             speed=game_config.ghost_speed,
+            spawn_tile=(1, 1),
             scatter_target=(1, 1),
         )
     ]
@@ -125,6 +128,7 @@ def test_check_collisions_sets_game_over_on_last_life(game_config: GameConfig) -
             pos=tile_center(2, 2, game_config.tile_size),
             direction=STOP,
             speed=game_config.ghost_speed,
+            spawn_tile=(1, 1),
             scatter_target=(1, 1),
         )
     ]
