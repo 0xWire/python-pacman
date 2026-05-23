@@ -9,8 +9,16 @@ from .config import GameConfig
 from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP
 from .ghost_ai import choose_ghost_direction
 from .hud import draw_center_message, draw_hud
-from .maze import MazeMap, available_mazes, load_maze
-from .movement import can_move, near_tile_center, snap_to_tile_center, step, tile_center, world_to_tile, wrap_position
+from .maze import available_mazes, load_maze
+from .movement import (
+    can_move,
+    near_tile_center,
+    snap_to_tile_center,
+    step,
+    tile_center,
+    world_to_tile,
+    wrap_position,
+)
 from .sprites import SpritePack, load_sprite_pack
 
 
@@ -21,7 +29,10 @@ class GameApp:
     def __init__(self, config: GameConfig) -> None:
         self.config = config
         self.maze_names = available_mazes()
-        self.maze_index = self.maze_names.index(config.start_maze) if config.start_maze in self.maze_names else 0
+        if config.start_maze in self.maze_names:
+            self.maze_index = self.maze_names.index(config.start_maze)
+        else:
+            self.maze_index = 0
         self.maze = load_maze(self.maze_names[self.maze_index])
         self.state = GameState(
             score=0,
@@ -79,7 +90,10 @@ class GameApp:
         self.state.ready_timer = self.READY_DURATION
 
     def _restart_level(self) -> None:
-        self.maze_index = self.maze_names.index(self.config.start_maze) if self.config.start_maze in self.maze_names else 0
+        if self.config.start_maze in self.maze_names:
+            self.maze_index = self.maze_names.index(self.config.start_maze)
+        else:
+            self.maze_index = 0
         self.maze = load_maze(self.maze_names[self.maze_index])
         self.state = GameState(
             score=0,
@@ -114,8 +128,9 @@ class GameApp:
     def _update_pacman(self, dt: float) -> None:
         if near_tile_center(self.pacman.pos, self.config.tile_size):
             self.pacman.pos = snap_to_tile_center(self.pacman.pos, self.config.tile_size)
-            if can_move(self.maze, self.pacman.pos, self.pacman.desired_direction, self.config.tile_size):
-                self.pacman.direction = self.pacman.desired_direction
+            desired = self.pacman.desired_direction
+            if can_move(self.maze, self.pacman.pos, desired, self.config.tile_size):
+                self.pacman.direction = desired
 
         if can_move(self.maze, self.pacman.pos, self.pacman.direction, self.config.tile_size):
             self.pacman.pos = step(self.pacman.pos, self.pacman.direction, self.pacman.speed, dt)
@@ -128,7 +143,8 @@ class GameApp:
             self.state.score += gained
             self.state.pellets_left -= 1
             if ate_power_pellet:
-                self.state.frightened_timer = self.config.frightened_duration_for_level(self.state.level)
+                level = self.state.level
+                self.state.frightened_timer = self.config.frightened_duration_for_level(level)
                 self.state.frightened_combo = 0
             if self.state.pellets_left <= 0:
                 self.state.level_complete = True
@@ -164,7 +180,8 @@ class GameApp:
                 if self.state.frightened_timer > 0.0:
                     self.state.score += 200 * (2 ** self.state.frightened_combo)
                     self.state.frightened_combo += 1
-                    ghost.pos = tile_center(ghost.spawn_tile[0], ghost.spawn_tile[1], self.config.tile_size)
+                    spawn_col, spawn_row = ghost.spawn_tile
+                    ghost.pos = tile_center(spawn_col, spawn_row, self.config.tile_size)
                     ghost.direction = STOP
                     continue
                 self.state.lives -= 1

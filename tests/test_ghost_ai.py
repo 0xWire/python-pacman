@@ -123,7 +123,8 @@ def test_choose_ghost_direction_picks_shortest_path_to_target(sample_maze, tile_
     ghost = make_ghost("blinky", 2, 2, tile_size, scatter_target=(4, 1), direction=STOP)
     blinky = make_ghost("blinky", 1, 1, tile_size, scatter_target=(4, 1))
 
-    assert choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False, False) == RIGHT
+    result = choose_ghost_direction(ghost, pacman, blinky, sample_maze, tile_size, False, False)
+    assert result == RIGHT
 
 
 def test_choose_ghost_direction_skips_reverse_when_other_moves_exist(
