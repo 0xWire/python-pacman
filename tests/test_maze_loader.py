@@ -3,7 +3,7 @@ import pytest
 from game import maze as maze_module
 from game.maze import load_maze
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.levels]
 
 
 def test_load_maze_rejects_unknown_name() -> None:

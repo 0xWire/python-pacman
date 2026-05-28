@@ -5,7 +5,7 @@ from game.config import GameConfig
 from game.entities import GameState, Pacman, STOP
 from game.movement import tile_center
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.levels]
 
 
 def test_advance_level_loads_next_maze_and_bumps_counter(

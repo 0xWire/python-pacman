@@ -2,7 +2,7 @@ import pytest
 
 from game.maze import MAZE_LAYOUTS, available_mazes
 
-pytestmark = pytest.mark.unit
+pytestmark = [pytest.mark.unit, pytest.mark.levels]
 
 
 def test_available_mazes_returns_tuple() -> None:
