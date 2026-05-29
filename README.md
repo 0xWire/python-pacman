@@ -47,7 +47,14 @@ make ci
 - `make report`: generates HTML reports in `reports/pytest/` and `reports/flake8/`
 - `make ci`: runs linting, tests, and report generation in one command
 
+## Test markers
+- `pytest -m unit`: pure unit tests for gameplay logic with no pygame dependencies
+- `pytest -m pygame`: tests that require pygame initialization or surfaces
+- `pytest -m levels`: tests that exercise multi-level progression and maze cycling
+
 ## GitHub Actions
 - Workflow file: `.github/workflows/ci.yml`
 - Triggers: every `push` and `pull_request`
-- Artifacts: uploaded HTML reports from `reports/`
+- Artifacts: uploaded HTML reports from `reports/` — open `reports/pytest/report.html` for the test
+  run and `reports/flake8/index.html` for the lint report after downloading the `ci-reports`
+  artifact from the Actions run summary
