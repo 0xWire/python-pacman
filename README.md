@@ -14,7 +14,7 @@ PacMan on Python + pygame. Branch `dev` is prepared for PR into `main`.
 python -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
-python main.py --tile-size 28 --fps 60
+python main.py --tile-size 28 --fps 60 --maze classic --lives 3
 ```
 
 PowerShell:
@@ -25,6 +25,8 @@ PowerShell:
 ## CLI options
 - `--tile-size`: tile size in pixels (default `28`)
 - `--fps`: target frame rate (default `60`)
+- `--maze`: starting maze (`classic` or `loops`)
+- `--lives`: starting lives (default `3`)
 
 ## Controls
 - `Arrows` or `WASD`: move

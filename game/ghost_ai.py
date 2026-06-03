@@ -57,9 +57,8 @@ def choose_ghost_direction(
     maze: MazeMap,
     tile_size: int,
     scatter_mode: bool,
+    frightened: bool,
 ) -> Vec2:
-    target = _target_tile(ghost, pacman, blinky, tile_size, scatter_mode)
-
     valid: list[Vec2] = []
     for direction in DIRECTION_ORDER:
         if ghost.direction != STOP and _is_reverse(direction, ghost.direction):
@@ -73,10 +72,14 @@ def choose_ghost_direction(
             return reverse
         return STOP
 
+    target = _target_tile(ghost, pacman, blinky, tile_size, scatter_mode)
+
     def score(direction: Vec2) -> int:
         current_col, current_row = world_to_tile(ghost.pos, tile_size)
         next_col = current_col + int(direction.x)
         next_row = current_row + int(direction.y)
         return squared_distance((next_col, next_row), target)
 
+    if frightened:
+        return max(valid, key=score)
     return min(valid, key=score)

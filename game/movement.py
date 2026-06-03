@@ -24,9 +24,23 @@ def near_tile_center(pos: Vec2, tile_size: int, tolerance: float = 2.5) -> bool:
     return abs(pos.x - center.x) <= tolerance and abs(pos.y - center.y) <= tolerance
 
 
+def snap_to_tile_center(pos: Vec2, tile_size: int, tolerance: float = 2.5) -> Vec2:
+    if not near_tile_center(pos, tile_size, tolerance):
+        return pos
+    col, row = world_to_tile(pos, tile_size)
+    return tile_center(col, row, tile_size)
+
+
 def can_move(maze: MazeMap, pos: Vec2, direction: Vec2, tile_size: int) -> bool:
     if _is_idle_direction(direction):
         return True
+
+    col, row = world_to_tile(pos, tile_size)
+    if direction.x < 0 and col == 0 and not maze.is_wall(maze.width - 1, row):
+        return True
+    if direction.x > 0 and col == maze.width - 1 and not maze.is_wall(0, row):
+        return True
+
     probe = tile_size * 0.52
     target_x = pos.x + direction.x * probe
     target_y = pos.y + direction.y * probe
@@ -37,6 +51,17 @@ def can_move(maze: MazeMap, pos: Vec2, direction: Vec2, tile_size: int) -> bool:
 
 def step(pos: Vec2, direction: Vec2, speed: float, dt: float) -> Vec2:
     return Vec2(pos.x + direction.x * speed * dt, pos.y + direction.y * speed * dt)
+
+
+def wrap_position(maze: MazeMap, pos: Vec2, tile_size: int) -> Vec2:
+    min_x = -tile_size * 0.5
+    max_x = maze.width * tile_size - tile_size * 0.5
+
+    if pos.x < min_x:
+        return Vec2(max_x, pos.y)
+    if pos.x > max_x:
+        return Vec2(min_x, pos.y)
+    return pos
 
 
 def squared_distance(a: tuple[int, int], b: tuple[int, int]) -> int:

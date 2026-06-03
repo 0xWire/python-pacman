@@ -9,19 +9,28 @@ from .config import GameConfig
 from .entities import DOWN, Ghost, GameState, LEFT, Pacman, RIGHT, STOP, UP
 from .ghost_ai import choose_ghost_direction
 from .hud import draw_center_message, draw_hud
-from .maze import MazeMap, load_default_maze
-from .movement import can_move, near_tile_center, step, tile_center, world_to_tile
+from .maze import MazeMap, available_mazes, load_maze
+from .movement import can_move, near_tile_center, snap_to_tile_center, step, tile_center, world_to_tile, wrap_position
 from .sprites import SpritePack, load_sprite_pack
 
 
 class GameApp:
+    FRIGHTENED_GHOST_SPEED_RATIO = 0.75
+    READY_DURATION = 1.5
+
     def __init__(self, config: GameConfig) -> None:
         self.config = config
-        self.maze: MazeMap = load_default_maze()
-        pellets_left = len(self.maze.pellets) + len(self.maze.power_pellets)
-        self.state = GameState(score=0, lives=3, pellets_left=pellets_left)
+        self.maze_names = available_mazes()
+        self.maze_index = self.maze_names.index(config.start_maze) if config.start_maze in self.maze_names else 0
+        self.maze = load_maze(self.maze_names[self.maze_index])
+        self.state = GameState(
+            score=0,
+            lives=config.starting_lives,
+            pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets),
+        )
 
         self.pacman, self.ghosts = self._spawn_entities()
+        self.state.ready_timer = self.READY_DURATION
         self.elapsed = 0.0
         self.mouth_timer = 0.0
 
@@ -35,7 +44,7 @@ class GameApp:
             pos=tile_center(pacman_tile[0], pacman_tile[1], self.config.tile_size),
             direction=STOP,
             desired_direction=STOP,
-            speed=self.config.pacman_speed,
+            speed=self.config.pacman_speed_for_level(self.state.level),
         )
 
         ghost_kinds = ["blinky", "pinky", "inky", "clyde"]
@@ -55,7 +64,8 @@ class GameApp:
                     kind=kind,
                     pos=tile_center(col, row, self.config.tile_size),
                     direction=LEFT if kind in {"blinky", "inky"} else RIGHT,
-                    speed=self.config.ghost_speed,
+                    speed=self.config.ghost_speed_for_level(self.state.level),
+                    spawn_tile=(col, row),
                     scatter_target=scatter_targets[kind],
                 )
             )
@@ -66,11 +76,26 @@ class GameApp:
         pacman, ghosts = self._spawn_entities()
         self.pacman = pacman
         self.ghosts = ghosts
+        self.state.ready_timer = self.READY_DURATION
 
     def _restart_level(self) -> None:
-        self.maze = load_default_maze()
-        pellets_left = len(self.maze.pellets) + len(self.maze.power_pellets)
-        self.state = GameState(score=0, lives=3, pellets_left=pellets_left)
+        self.maze_index = self.maze_names.index(self.config.start_maze) if self.config.start_maze in self.maze_names else 0
+        self.maze = load_maze(self.maze_names[self.maze_index])
+        self.state = GameState(
+            score=0,
+            lives=self.config.starting_lives,
+            pellets_left=len(self.maze.pellets) + len(self.maze.power_pellets),
+        )
+        self._reset_positions()
+        self.elapsed = 0.0
+        self.mouth_timer = 0.0
+
+    def _advance_level(self) -> None:
+        self.maze_index = (self.maze_index + 1) % len(self.maze_names)
+        self.maze = load_maze(self.maze_names[self.maze_index])
+        self.state.level += 1
+        self.state.level_complete = False
+        self.state.pellets_left = len(self.maze.pellets) + len(self.maze.power_pellets)
         self._reset_positions()
         self.elapsed = 0.0
         self.mouth_timer = 0.0
@@ -88,31 +113,37 @@ class GameApp:
 
     def _update_pacman(self, dt: float) -> None:
         if near_tile_center(self.pacman.pos, self.config.tile_size):
-            if can_move(
-                self.maze,
-                self.pacman.pos,
-                self.pacman.desired_direction,
-                self.config.tile_size,
-            ):
+            self.pacman.pos = snap_to_tile_center(self.pacman.pos, self.config.tile_size)
+            if can_move(self.maze, self.pacman.pos, self.pacman.desired_direction, self.config.tile_size):
                 self.pacman.direction = self.pacman.desired_direction
 
         if can_move(self.maze, self.pacman.pos, self.pacman.direction, self.config.tile_size):
             self.pacman.pos = step(self.pacman.pos, self.pacman.direction, self.pacman.speed, dt)
+            self.pacman.pos = wrap_position(self.maze, self.pacman.pos, self.config.tile_size)
 
         col, row = world_to_tile(self.pacman.pos, self.config.tile_size)
+        ate_power_pellet = (col, row) in self.maze.power_pellets
         gained = self.maze.eat_pellet(col, row)
         if gained:
             self.state.score += gained
             self.state.pellets_left -= 1
+            if ate_power_pellet:
+                self.state.frightened_timer = self.config.frightened_duration_for_level(self.state.level)
+                self.state.frightened_combo = 0
             if self.state.pellets_left <= 0:
                 self.state.level_complete = True
+                self._advance_level()
 
     def _update_ghosts(self, dt: float) -> None:
         scatter_mode = int(self.elapsed / 8.0) % 2 == 1
+        frightened = self.state.frightened_timer > 0.0
         blinky = self.ghosts[0]
 
         for ghost in self.ghosts:
+            base_speed = self.config.ghost_speed_for_level(self.state.level)
+            ghost.speed = base_speed * (self.FRIGHTENED_GHOST_SPEED_RATIO if frightened else 1.0)
             if near_tile_center(ghost.pos, self.config.tile_size):
+                ghost.pos = snap_to_tile_center(ghost.pos, self.config.tile_size)
                 ghost.direction = choose_ghost_direction(
                     ghost=ghost,
                     pacman=self.pacman,
@@ -120,14 +151,22 @@ class GameApp:
                     maze=self.maze,
                     tile_size=self.config.tile_size,
                     scatter_mode=scatter_mode,
+                    frightened=frightened,
                 )
             if can_move(self.maze, ghost.pos, ghost.direction, self.config.tile_size):
                 ghost.pos = step(ghost.pos, ghost.direction, ghost.speed, dt)
+                ghost.pos = wrap_position(self.maze, ghost.pos, self.config.tile_size)
 
     def _check_collisions(self) -> None:
         radius = self.config.tile_size * self.config.collision_radius_ratio
         for ghost in self.ghosts:
             if collides_with_ghost(self.pacman, ghost, radius):
+                if self.state.frightened_timer > 0.0:
+                    self.state.score += 200 * (2 ** self.state.frightened_combo)
+                    self.state.frightened_combo += 1
+                    ghost.pos = tile_center(ghost.spawn_tile[0], ghost.spawn_tile[1], self.config.tile_size)
+                    ghost.direction = STOP
+                    continue
                 self.state.lives -= 1
                 if self.state.lives <= 0:
                     self.state.game_over = True
@@ -138,6 +177,14 @@ class GameApp:
     def _update(self, dt: float) -> None:
         self.elapsed += dt
         self.mouth_timer += dt
+
+        if self.state.ready_timer > 0.0:
+            self.state.ready_timer = max(0.0, self.state.ready_timer - dt)
+            return
+
+        self.state.frightened_timer = max(0.0, self.state.frightened_timer - dt)
+        if self.state.frightened_timer == 0.0:
+            self.state.frightened_combo = 0
 
         self._update_pacman(dt)
         self._update_ghosts(dt)
@@ -245,11 +292,14 @@ class GameApp:
                     top_y=self.maze.height * self.config.tile_size,
                     score=self.state.score,
                     lives=self.state.lives,
+                    level=self.state.level,
                 )
                 if self.state.paused:
                     draw_center_message(screen, self.font, window_size, "PAUSED")
                 elif self.state.game_over:
                     draw_center_message(screen, self.font, window_size, "GAME OVER - PRESS R")
+                elif self.state.ready_timer > 0.0:
+                    draw_center_message(screen, self.font, window_size, "READY")
                 elif self.state.level_complete:
                     draw_center_message(screen, self.font, window_size, "LEVEL COMPLETE - PRESS R")
 

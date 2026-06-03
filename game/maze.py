@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 
-DEFAULT_LAYOUT = [
+CLASSIC_LAYOUT = [
     "############################",
     "#............##............#",
     "#.####.#####.##.#####.####.#",
@@ -12,7 +12,7 @@ DEFAULT_LAYOUT = [
     "#.####.##.########.##.####.#",
     "#......##....##....##......#",
     "######.#####.##.#####.######",
-    "#....#................#....#",
+    ".....#................#.....",
     "####.#.##.##GGGG##.##.#.####",
     "#....#.##.##....##.##.#....#",
     "####.#.##.########.##.#.####",
@@ -22,15 +22,42 @@ DEFAULT_LAYOUT = [
     "###.##.##.########.##.##.###",
     "#......##....P.....##......#",
     "#.##########.##.##########.#",
-    "#o........................o#",
+    ".o........................o.",
     "############################",
 ]
+
+MAZE_LAYOUTS = {
+    "classic": CLASSIC_LAYOUT,
+    "loops": [
+        "############################",
+        ".............##.............",
+        "#.####.#####.##.#####.####.#",
+        "#o####.#####.##.#####.####o#",
+        "............................",
+        "#.####.##.########.##.####.#",
+        "#......##....##....##......#",
+        "######.#####.##.#####.######",
+        "#............##............#",
+        "####.#.##.##GGGG##.##.#.####",
+        "#....#.##.##....##.##.#....#",
+        "####.#.##.########.##.#.####",
+        "#............##............#",
+        "#.####.#####.##.#####.####.#",
+        "#o..##................##..o#",
+        "###.##.##.########.##.##.###",
+        "#......##....P.....##......#",
+        "#.##########.##.##########.#",
+        "#..........................#",
+        "############################",
+    ],
+}
 
 FALLBACK_GHOST_SPAWNS = [(12, 9), (13, 9), (14, 9), (15, 9)]
 
 
 @dataclass
 class MazeMap:
+    name: str
     layout: list[str]
     pacman_spawn: tuple[int, int]
     ghost_spawns: list[tuple[int, int]]
@@ -61,13 +88,31 @@ class MazeMap:
         return 0
 
 
-def load_default_maze() -> MazeMap:
+def _validate_layout(name: str, layout: list[str]) -> None:
+    if not layout:
+        raise ValueError(f"Maze '{name}' must contain at least one row")
+
+    width = len(layout[0])
+    if width == 0:
+        raise ValueError(f"Maze '{name}' cannot have empty rows")
+
+    for row in layout:
+        if len(row) != width:
+            raise ValueError(f"Maze '{name}' must be rectangular")
+
+
+def load_maze(name: str) -> MazeMap:
+    if name not in MAZE_LAYOUTS:
+        raise ValueError(f"Unknown maze '{name}'")
+
+    layout = MAZE_LAYOUTS[name]
+    _validate_layout(name, layout)
     pacman_spawn = (14, 16)
     ghost_spawns: list[tuple[int, int]] = []
     pellets: set[tuple[int, int]] = set()
     power_pellets: set[tuple[int, int]] = set()
 
-    for row, row_value in enumerate(DEFAULT_LAYOUT):
+    for row, row_value in enumerate(layout):
         for col, cell in enumerate(row_value):
             if cell == "P":
                 pacman_spawn = (col, row)
@@ -86,9 +131,18 @@ def load_default_maze() -> MazeMap:
                 break
 
     return MazeMap(
-        layout=DEFAULT_LAYOUT,
+        name=name,
+        layout=layout,
         pacman_spawn=pacman_spawn,
         ghost_spawns=ghost_spawns[:4],
         pellets=pellets,
         power_pellets=power_pellets,
     )
+
+
+def load_default_maze() -> MazeMap:
+    return load_maze("classic")
+
+
+def available_mazes() -> tuple[str, ...]:
+    return tuple(MAZE_LAYOUTS)
